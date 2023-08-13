@@ -1,5 +1,4 @@
 import time
-import sys
 import csv
 
 
@@ -49,31 +48,63 @@ def questions_mode():
     )
 
     type = ""
-    while type != "done":
-        type = (
-            input("Enter 'quiz' or 'free form' to select question type: ")
-            .casefold()
-            .strip()
-        )
-        if "quiz" in type:
-            ...
-        elif "free form" in type:
-            free_form()
+    question_count = 0
+    with open("questions.csv") as file:
+        reader = csv.DictReader(file)
+        while True:
+            type = (
+                input("Enter 'quiz' or 'free form' to select question type: ")
+                .casefold()
+                .strip()
+            )
+            if "quiz" in type:
+                quiz()
+            elif "free form" in type:
+                free_form()
+            if type == "done":
+                for row in reader:
+                    question_count += 1
+                if question_count < 5:
+                    print("At least 5 questions must be added.")
+                    continue
+                if question_count >= 5:
+                    print("All questions have been added.")
+                    break
+
 
 #Inputs the question and answer to csv in free form.
 def free_form():
     with open("questions.csv", "a", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=["question", "answer"])
 
-        if file.tell() == 0:
-            writer.writeheader()
-
         question = input("Enter your question: ")
         answer = input("Enter the answer: ")
         writer.writerow({"question": question, "answer": answer})
 
+#Inputs the question and answer to csv in quiz form.
 def quiz():
+    with open("questions.csv", "a", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=["question", "answer"])
 
+        question = input("Enter your question: ")
+        answer = ""
+        answer_list = []
+        while True:
+            answer = input("Enter an answer:")
+            if answer.casefold().strip() == "done":
+                if 1 <= len(answer_list) <= 4:
+                    break
+                else:
+                    print("You must provide at least 1 and up to 4 questions.")
+                    continue
+
+            answer_list.append(answer)
+
+            if len(answer_list) == 4:
+                print("You've reached the maximum limit of 4 answers.")
+                break
+
+        writer.writerow({"question": question, "answer": answer_list})
 
 
 if __name__ == "__main__":
