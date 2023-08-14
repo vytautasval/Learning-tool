@@ -36,12 +36,17 @@ class LearningTool:
 
     #Initializes the selected mode.
     def main(self):
-        if self.start_up() == "add":
+        user_choice = self.start_up()
+
+        if user_choice == "add":
             question_mode = QuestionsMode()
             question_mode.questions_mode()
-        if self.start_up() == "stats":
+        if user_choice == "stats":
             stats_mode = StatisticsMode()
-
+            stats_mode.show_stats()
+        if user_choice == "activate":
+            disable_enable_mode = DisableEnableMode()
+            disable_enable_mode.select()
 
 class QuestionsMode:
     def __init__(self):
@@ -83,7 +88,7 @@ class QuestionsMode:
                         print("All questions have been added.")
                         break
 
-#Initializes the question and opens the csv file.
+#Initializes the question and writes to the csv file.
 class BaseQuestion:
     def __init__(self):
         self.file_path = "questions.csv"
@@ -93,8 +98,8 @@ class BaseQuestion:
         answer = self.get_answer()
 
         with open("questions.csv", "a", newline="") as file:
-            writer = csv.DictWriter(file, fieldnames=["id", "question", "answer"])
-            writer.writerow({"id": question_id, "question": question, "answer": answer})
+            writer = csv.DictWriter(file, fieldnames=["id", "question", "answer", "status"])
+            writer.writerow({"id": question_id, "question": question, "answer": answer, "status": "ENABLED"})
 
 #Returns the answer made in free form format.
 class FreeFormQuestion(BaseQuestion):
@@ -108,10 +113,10 @@ class QuizQuestion(BaseQuestion):
         while True:
             answer = input("Enter an answer:")
             if answer.casefold().strip() == "done":
-                if 1 <= len(answer_list) <= 4:
+                if 2 <= len(answer_list) <= 4:
                     break
                 else:
-                    print("You must provide at least 1 and up to 4 questions.")
+                    print("You must provide at least 2 and up to 4 questions.")
                     continue
 
             answer_list.append(answer)
@@ -122,8 +127,99 @@ class QuizQuestion(BaseQuestion):
 
         return answer_list
 
+#Prints out information about the questions from the csv file.
 class StatisticsMode:
-    ...
+    def __init__(self):
+        self.file_path = "questions.csv"
+
+    def show_stats(self):
+        with open("questions.csv") as file:
+            reader = csv.DictReader(file)
+            file.seek(0)
+            for row in reader:
+                print(f"ID:{row['id']}. Question: {row['question']}. Status: {row['status']}")
+
+class DisableEnableMode:
+    def __init__(self):
+        self.file_path = "questions.csv"
+
+    def select(self):
+        while True:
+            id_selector = input("Enter the ID of the desired question. Otherwise type 'done'. ").strip(" .")
+
+            if id_selector == "done":
+                break
+            if not id_selector.isdigit():
+                print("Invalid input. Please enter a valid ID or 'done'.")
+                continue
+
+            self.process_question(int(id_selector))
+
+    def process_question(self, id_selector):
+        question_found = False
+
+        with open(self.file_path) as file:
+            reader = csv.DictReader(file)
+            rows = list(reader)
+            for row in rows:
+                if id_selector == int(row["id"]):
+                    question_found = True
+                    self.display_question(row)
+
+                    if row['status'] == "ENABLED":
+                        self.handle_activation(rows.index[row], deactivate=True)
+
+                    if row['status'] == "DISABLED":
+                        self.handle_activation(rows.index(row), deactivate=False)
+
+                    break
+
+            if not question_found:
+                print("Question not found.")
+
+    def display_question(self, row):
+        print(f"You have selected ID: {row['id']}, "
+              f"question: {row['question']}, "
+              f"answer: {row['answer']}, "
+              f"status: {row['status']}")
+
+    def handle_activation(self, row_index, deactivate):
+        action = "deactivate" if deactivate else "activate"
+        user_choice = input(f"Type in '{action}' to {action} the question. Otherwise type 'done': ").casefold().strip()
+
+        if user_choice == action:
+            if deactivate:
+                self.deactivate(row_index)
+            else:
+                self.activate(row_index)
+
+    def deactivate(self, row_index):
+        rows = []
+        with open(self.file_path) as file:
+            reader = csv.DictReader(file)
+            rows = list(reader)
+
+        rows[row_index]['status'] = 'DISABLED'
+
+        with open(self.file_path, "w", newline="") as file:
+            writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+            writer.writeheader()
+            writer.writerows(rows)
+
+
+    def activate(self, row_index):
+        rows = []
+        with open(self.file_path) as file:
+            reader = csv.DictReader(file)
+            rows = list(reader)
+
+        rows[row_index]['status'] = 'ENABLED'
+
+        with open(self.file_path, 'w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+            writer.writeheader()
+            writer.writerows(rows)
+
 
 if __name__ == "__main__":
     learning_tool = LearningTool()
