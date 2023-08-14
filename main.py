@@ -10,6 +10,7 @@ class LearningTool:
             "Type 'activate' to disable or enable questions.": "activate",
             "Type 'practice' to enter practice mode.": "practice",
             "Type 'test' to enter test mode.": "test",
+            "Type 'quit' to quit the program.": "quit"
         }
 
     # Initializes the start up and makes it possible to pick a mode.
@@ -28,35 +29,44 @@ class LearningTool:
                 "Incorrect command. Please try again. If you wish to exit, type in 'quit'."
             )
             user_choice = input()
-            if "quit" in user_choice:
-                raise (SystemExit("Program stopped."))
         else:
-            print("Command accepted.")
+            time.sleep(1)
             return user_choice
 
     #Initializes the selected mode.
     def main(self):
-        user_choice = self.start_up()
+        while True:
+            user_choice = self.start_up()
 
-        if user_choice == "add":
-            question_mode = QuestionsMode()
-            question_mode.questions_mode()
-        if user_choice == "stats":
-            stats_mode = StatisticsMode()
-            stats_mode.show_stats()
-        if user_choice == "activate":
-            disable_enable_mode = DisableEnableMode()
-            disable_enable_mode.select()
+            if user_choice == "quit":
+                raise (SystemExit("Program stopped."))
+            if user_choice == "add":
+                question_mode = QuestionsMode()
+                question_mode.questions_mode()
+                time.sleep(1)
+            if user_choice == "stats":
+                stats_mode = StatisticsMode()
+                stats_mode.show_stats()
+                time.sleep(1)
+            if user_choice == "activate":
+                disable_enable_mode = DisableEnableMode()
+                disable_enable_mode.select()
+                time.sleep(1)
 
 class QuestionsMode:
     def __init__(self):
         self.question_count = 0
-        self.id_counter = 1
+        self.id_counter = self.get_last_question_id() + 1
 
-    def get_next_question_id(self):
-        question_id = self.id_counter
-        self.id_counter += 1
-        return question_id
+    def get_last_question_id(self):
+        with open("questions.csv") as file:
+            reader = csv.DictReader(file)
+            last_row = None
+            for row in reader:
+                last_row = row
+            if last_row:
+                return int(last_row["id"])
+            return 0
 
     #Enters question mode, provides the choice between quiz and free form mode and goes into the respective mode.
     def questions_mode(self):
@@ -73,10 +83,12 @@ class QuestionsMode:
 
                 if question_type == "quiz":
                     quiz_question = QuizQuestion()
-                    quiz_question.enter_question(self.get_next_question_id())
+                    quiz_question.enter_question(self.id_counter)
+                    self.id_counter += 1
                 elif question_type == "free form":
                     free_form_question = FreeFormQuestion()
-                    free_form_question.enter_question(self.get_next_question_id())
+                    free_form_question.enter_question(self.id_counter)
+                    self.id_counter += 1
 
                 if question_type == "done":
                     for row in reader:
@@ -97,7 +109,7 @@ class BaseQuestion:
         question = input("Enter your question: ")
         answer = self.get_answer()
 
-        with open("questions.csv", "a", newline="") as file:
+        with open(self.file_path, "a", newline="") as file:
             writer = csv.DictWriter(file, fieldnames=["id", "question", "answer", "status"])
             writer.writerow({"id": question_id, "question": question, "answer": answer, "status": "ENABLED"})
 
