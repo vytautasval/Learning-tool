@@ -139,10 +139,12 @@ class StatisticsMode:
             for row in reader:
                 print(f"ID:{row['id']}. Question: {row['question']}. Status: {row['status']}")
 
+#Enters disable/enable mode.
 class DisableEnableMode:
     def __init__(self):
         self.file_path = "questions.csv"
 
+    #Initial prompt for the ID.
     def select(self):
         while True:
             id_selector = input("Enter the ID of the desired question. Otherwise type 'done'. ").strip(" .")
@@ -155,6 +157,7 @@ class DisableEnableMode:
 
             self.process_question(int(id_selector))
 
+    #Then, depending on the status of the question, it will be sent to a confirmation prompt.
     def process_question(self, id_selector):
         question_found = False
 
@@ -167,7 +170,7 @@ class DisableEnableMode:
                     self.display_question(row)
 
                     if row['status'] == "ENABLED":
-                        self.handle_activation(rows.index[row], deactivate=True)
+                        self.handle_activation(rows.index(row), deactivate=True)
 
                     if row['status'] == "DISABLED":
                         self.handle_activation(rows.index(row), deactivate=False)
@@ -177,12 +180,14 @@ class DisableEnableMode:
             if not question_found:
                 print("Question not found.")
 
+    #Displays the selected question.
     def display_question(self, row):
         print(f"You have selected ID: {row['id']}, "
               f"question: {row['question']}, "
               f"answer: {row['answer']}, "
               f"status: {row['status']}")
 
+    #Confirmation prompt. If user confirms program continues in the activate or deactivate function.
     def handle_activation(self, row_index, deactivate):
         action = "deactivate" if deactivate else "activate"
         user_choice = input(f"Type in '{action}' to {action} the question. Otherwise type 'done': ").casefold().strip()
@@ -193,6 +198,7 @@ class DisableEnableMode:
             else:
                 self.activate(row_index)
 
+    #Edits the status to DISABLED.
     def deactivate(self, row_index):
         rows = []
         with open(self.file_path) as file:
@@ -206,7 +212,7 @@ class DisableEnableMode:
             writer.writeheader()
             writer.writerows(rows)
 
-
+    #Edits the status to ENABLED.
     def activate(self, row_index):
         rows = []
         with open(self.file_path) as file:
