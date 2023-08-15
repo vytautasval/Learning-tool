@@ -1,5 +1,6 @@
 import time
 import csv
+import random
 
 #Base tool itself.
 class LearningTool:
@@ -51,6 +52,11 @@ class LearningTool:
             if user_choice == "activate":
                 disable_enable_mode = DisableEnableMode()
                 disable_enable_mode.select()
+                time.sleep(1)
+            if user_choice == "practice":
+                practice_mode = PracticeMode()
+                practice_mode.active_questions()
+                practice_mode.random_question()
                 time.sleep(1)
 
 class QuestionsMode:
@@ -237,6 +243,48 @@ class DisableEnableMode:
             writer = csv.DictWriter(file, fieldnames=rows[0].keys())
             writer.writeheader()
             writer.writerows(rows)
+
+#Enters practice mode.
+class PracticeMode:
+    def __init__(self):
+        self.out_path = "questions.csv"
+        self.in_path = "practice.csv"
+
+    def launch(self):
+        while True:
+                        
+
+    #Picks out only the active questions and stores them in a csv file.
+    def active_questions(self):
+
+        with open(self.out_path) as out_file, open(self.in_path, "a", newline="") as in_file:
+            reader = csv.DictReader(out_file)
+            writer = csv.DictWriter(in_file, fieldnames=["id", "question", "answer", "status"])
+            for row in reader:
+                if row["status"] == "ENABLED":
+                    writer.writerow({"id": row["id"], "question": row["question"],
+                                     "answer": row["answer"]})
+
+    #Picks out a random question.
+    def random_question(self):
+        with open(self.in_path) as in_file:
+            reader = csv.DictReader(in_file)
+            total_questions = list(reader)
+            random_question_data = total_questions[random.randint(0, len(total_questions))]
+            question = random_question_data["question"]
+            answer = random_question_data["answer"]
+
+        return question, answer
+
+    def correction(self):
+        question, answer = self.random_question()
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":

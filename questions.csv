@@ -1,1 +1,14 @@
-
+id,question,answer,status
+1,sveikutis,labas,DISABLED
+2,labukas,lsveikas,ENABLED
+3,2+2,4,ENABLED
+4,4+4,16,ENABLED
+5,16+16,32,ENABLED
+6,32+32,64,ENABLED
+7,ja rule,yes sir,DISABLED
+8,bing bong,joe mom,ENABLED
+8,lick nuts,deez buts,ENABLED
+9,ja rule,jo bool,ENABLED
+10,king kong,ding dong,ENABLED
+"11,yes sir?,""['yes mam', 'uhuh']"",ENABLED"
+"12,beez buts,""['yessir', 'wahoo']"",ENABLED"
