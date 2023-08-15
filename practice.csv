@@ -1,19 +1,6 @@
-id,question,answer,status
-2,labukas,lsveikas,
-3,2+2,4,
-4,4+4,16,
-5,16+16,32,
-6,32+32,64,
-8,bing bong,joe mom,
-8,lick nuts,deez buts,
-9,ja rule,jo bool,
-10,king kong,ding dong,
-2,labukas,lsveikas,
-3,2+2,4,
-4,4+4,16,
-5,16+16,32,
-6,32+32,64,
-8,bing bong,joe mom,
-8,lick nuts,deez buts,
-9,ja rule,jo bool,
-10,king kong,ding dong,
+id,question,answer
+2,2+2,['4']
+3,4+4,['8']
+8,32+32,64
+9,100+100,200
+10,kaip kitaip pavadinti kate?,zipa zipulyte

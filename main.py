@@ -109,14 +109,18 @@ class QuestionsMode:
 class BaseQuestion:
     def __init__(self):
         self.file_path = "questions.csv"
+        self.practice_path = "practice.csv"
 
     def enter_question(self, question_id):
         question = input("Enter your question: ")
         answer = self.get_answer()
 
-        with open(self.file_path, "a", newline="") as file:
-            writer = csv.DictWriter(file, fieldnames=["id", "question", "answer", "status"])
+        with open(self.file_path, "a", newline="") as file, open(self.practice_path, "a", newline="") as p_file:
+            writer = csv.DictWriter(file, fieldnames=["id", "question", "answer", "status", "weight"])
+            p_writer = csv.DictWriter(p_file, fieldnames=["id", "question", "answer", "status", "weight"])
             writer.writerow({"id": question_id, "question": question,
+                             "answer": answer, "status": "ENABLED", "weight": 25})
+            p_writer.writerow({"id": question_id, "question": question,
                              "answer": answer, "status": "ENABLED", "weight": 25})
 
 #Returns the answer made in free form format.
@@ -161,6 +165,7 @@ class StatisticsMode:
 class DisableEnableMode:
     def __init__(self):
         self.file_path = "questions.csv"
+        self.practice_path = "practice.csv"
 
     #Initial prompt for the ID.
     def select(self):
@@ -225,10 +230,14 @@ class DisableEnableMode:
 
         rows[row_index]['status'] = 'DISABLED'
 
-        with open(self.file_path, "w", newline="") as file:
+        with open(self.file_path, "w", newline="") as file, open(self.practice_path, "a", newline="") as p_file:
             writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+            p_writer = csv.DictWriter(p_file, fieldnames=rows[0].keys())
+
             writer.writeheader()
             writer.writerows(rows)
+            p_writer.writeheader()
+            p_writer.writerows(rows)
 
     #Edits the status to ENABLED.
     def activate(self, row_index):
@@ -239,16 +248,20 @@ class DisableEnableMode:
 
         rows[row_index]['status'] = 'ENABLED'
 
-        with open(self.file_path, 'w', newline='') as file:
+        with open(self.file_path, "w", newline="") as file, open(self.practice_path, "a", newline="") as p_file:
             writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+            p_writer = csv.DictWriter(p_file, fieldnames=rows[0].keys())
+
             writer.writeheader()
             writer.writerows(rows)
+            p_writer.writeheader()
+            p_writer.writerows(rows)
 
 #Enters practice mode.
 class PracticeMode:
     def __init__(self):
-        self.out_path = "questions.csv"
-        self.in_path = "practice.csv"
+        self.file_path = "questions.csv"
+        self.practice_path = "practice.csv"
 
     #Launches practice mode and provides the question obtained from random_question function.
     def launch(self):
@@ -273,7 +286,7 @@ class PracticeMode:
     #Picks out only the active questions and stores them in a csv file.
     def active_questions(self):
 
-        with open(self.out_path) as out_file, open(self.in_path, "a", newline="") as in_file:
+        with open(self.out_path) as out_file, open(self.practice_path, "a", newline="") as in_file:
             reader = csv.DictReader(out_file)
             writer = csv.DictWriter(in_file, fieldnames=["id", "question", "answer"])
             for row in reader:
@@ -283,15 +296,20 @@ class PracticeMode:
 
     #Picks out a random question.
     def random_question(self):
-        with open(self.in_path) as in_file:
-            reader = csv.DictReader(in_file)
-            total_questions = list(reader)
-            random_question_data = total_questions[random.randint(0, len(total_questions)-1)]
-            question = random_question_data["question"]
-            answer = random_question_data["answer"]
-            strip_answer = answer.strip("[]")
-            split_answer = strip_answer.split(", ")
-            answer = [element.strip("'") for element in split_answer]
+        enabled_questions = []
+        with open(self.file_path) as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if row["status"] == "ENABLED":
+                    enabled_questions.append(row)
+        weights = [item["weight"] for item in enabled_questions]
+
+        random_question_data = random.choices(enabled_questions, weights, k=1)
+        question = random_question_data["question"]
+        answer = random_question_data["answer"]
+        strip_answer = answer.strip("[]")
+        split_answer = strip_answer.split(", ")
+        answer = [element.strip("'") for element in split_answer]
 
         return question, answer
 
