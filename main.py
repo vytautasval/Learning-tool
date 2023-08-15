@@ -55,8 +55,7 @@ class LearningTool:
                 time.sleep(1)
             if user_choice == "practice":
                 practice_mode = PracticeMode()
-                practice_mode.active_questions()
-                practice_mode.random_question()
+                practice_mode.launch()
                 time.sleep(1)
 
 class QuestionsMode:
@@ -251,8 +250,22 @@ class PracticeMode:
         self.in_path = "practice.csv"
 
     def launch(self):
+        self.active_questions()
+        print("You have selected practice mode. Questions will appear in a random manner. "
+              "Please type in the correct answer below.")
         while True:
-                        
+            question, answer = self.random_question()
+            if type(answer) == list:
+                random.shuffle(answer)
+                print(question)
+                for a in answer:
+                    print(a, end=".\n")
+                user_answer = input("Enter your answer: ")
+                self.correction()
+            else:
+                print(question)
+                user_answer = input("Enter your answer: ")
+                self.correction()
 
     #Picks out only the active questions and stores them in a csv file.
     def active_questions(self):
