@@ -116,7 +116,8 @@ class BaseQuestion:
 
         with open(self.file_path, "a", newline="") as file:
             writer = csv.DictWriter(file, fieldnames=["id", "question", "answer", "status"])
-            writer.writerow({"id": question_id, "question": question, "answer": answer, "status": "ENABLED"})
+            writer.writerow({"id": question_id, "question": question,
+                             "answer": answer, "status": "ENABLED", "weight": 25})
 
 #Returns the answer made in free form format.
 class FreeFormQuestion(BaseQuestion):
@@ -249,30 +250,32 @@ class PracticeMode:
         self.out_path = "questions.csv"
         self.in_path = "practice.csv"
 
+    #Launches practice mode and provides the question obtained from random_question function.
     def launch(self):
         self.active_questions()
         print("You have selected practice mode. Questions will appear in a random manner. "
               "Please type in the correct answer below.")
         while True:
             question, answer = self.random_question()
-            if type(answer) == list:
+            correct_answer = answer[0]
+            if len(answer) > 1:
                 random.shuffle(answer)
                 print(question)
                 for a in answer:
-                    print(a, end=".\n")
+                    print(a, end="\n")
                 user_answer = input("Enter your answer: ")
-                self.correction()
+                self.correction(user_answer, question, answer)
             else:
                 print(question)
                 user_answer = input("Enter your answer: ")
-                self.correction()
+                self.correction(user_answer, question, answer)
 
     #Picks out only the active questions and stores them in a csv file.
     def active_questions(self):
 
         with open(self.out_path) as out_file, open(self.in_path, "a", newline="") as in_file:
             reader = csv.DictReader(out_file)
-            writer = csv.DictWriter(in_file, fieldnames=["id", "question", "answer", "status"])
+            writer = csv.DictWriter(in_file, fieldnames=["id", "question", "answer"])
             for row in reader:
                 if row["status"] == "ENABLED":
                     writer.writerow({"id": row["id"], "question": row["question"],
@@ -283,21 +286,18 @@ class PracticeMode:
         with open(self.in_path) as in_file:
             reader = csv.DictReader(in_file)
             total_questions = list(reader)
-            random_question_data = total_questions[random.randint(0, len(total_questions))]
+            random_question_data = total_questions[random.randint(0, len(total_questions)-1)]
             question = random_question_data["question"]
             answer = random_question_data["answer"]
+            strip_answer = answer.strip("[]")
+            split_answer = strip_answer.split(", ")
+            answer = [element.strip("'") for element in split_answer]
 
         return question, answer
 
-    def correction(self):
-        question, answer = self.random_question()
+    def correction(self, user_answer, question, answer):
 
-
-
-
-
-
-
+        ...
 
 
 if __name__ == "__main__":
