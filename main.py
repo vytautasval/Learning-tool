@@ -281,7 +281,8 @@ class PracticeMode:
         while True:
             random_question_data = self.random_question()
             question, answer = self.random_question_splitter(random_question_data)
-
+            correct_answer = answer[0]
+            print(self.enabled_questions)
             if len(answer) > 1:
                 random.shuffle(answer)
                 print(question)
@@ -289,27 +290,31 @@ class PracticeMode:
                     print(a, end="\n")
                 user_answer = input("Enter your answer (or type 'done' to exit): ")
                 if user_answer.lower() == 'done':
+                    self.weight(random_question_data, weight_change)
+                    self.csv_rewriter()
                     break
-                weight_change = self.correction(user_answer, answer)
+                weight_change = self.correction(user_answer, correct_answer)
                 self.weight(random_question_data, weight_change)
             else:
                 print(question)
                 user_answer = input("Enter your answer (or type 'done' to exit): ")
                 if user_answer.lower() == 'done':
+                    self.csv_rewriter()
+                    self.weight(random_question_data, weight_change)
                     break
-                weight_change = self.correction(user_answer, answer)
+                weight_change = self.correction(user_answer, correct_answer)
                 self.weight(random_question_data, weight_change)
 
     def csv_rewriter(self):
         with open(self.practice_path, "w", newline='') as p_file:
-            writer = csv.DictWriter(p_file)
+            writer = csv.DictWriter(p_file, fieldnames=["id", "question", "answer", "status", "weight"])
             for row in self.enabled_questions:
                 writer.writerow(row)
-                
+
     #Separates enabled questions to a list.
     def enabled_questions_picker(self):
         with open(self.practice_path) as p_file:
-            reader = csv.DictReader(p_file)
+            reader = csv.DictReader(p_file, fieldnames=["id", "question", "answer", "status", "weight"])
             for row in reader:
                 if row["status"] == "ENABLED":
                     self.enabled_questions.append(row)
@@ -336,18 +341,9 @@ class PracticeMode:
 
         return question, answer
 
-    # pasiemi faila V
-    # sukeli i lista V
-    # is listo paimi random questiona ir istrini is listo V
-    # atsako V
-    # eina i correction ir pakeicia weight ir ideda atgal i lista V
-    # tada eina vel klausimas V
-    # kai sustabdoma, tada listas perrasomas ant virsaus csv
-
     #Checks if user answer correct and returns corresponding weight change.
-    def correction(self, user_answer, answer):
-
-        if user_answer == answer[0]:
+    def correction(self, user_answer, correct_answer):
+        if user_answer == correct_answer:
             weight_change = -2.5
             print("Correct!")
             return weight_change
