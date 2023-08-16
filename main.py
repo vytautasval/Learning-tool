@@ -275,7 +275,7 @@ class PracticeMode:
 
     # Launches practice mode and provides the question obtained from random_question function.
     def launch(self):
-        # self.active_questions()
+        self.enabled_questions_picker()
         print("You have selected practice mode. Questions will appear in a random manner. "
               "Please type in the correct answer below.")
         while True:
@@ -287,37 +287,45 @@ class PracticeMode:
                 print(question)
                 for a in answer:
                     print(a, end="\n")
-                user_answer = input("Enter your answer: ")
+                user_answer = input("Enter your answer (or type 'done' to exit): ")
+                if user_answer.lower() == 'done':
+                    break
                 weight_change = self.correction(user_answer, answer)
                 self.weight(random_question_data, weight_change)
             else:
                 print(question)
-                user_answer = input("Enter your answer: ")
+                user_answer = input("Enter your answer (or type 'done' to exit): ")
+                if user_answer.lower() == 'done':
+                    break
                 weight_change = self.correction(user_answer, answer)
                 self.weight(random_question_data, weight_change)
 
-
+    def csv_rewriter(self):
+        with open(self.practice_path, "w", newline='') as p_file:
+            writer = csv.DictWriter(p_file)
+            for row in self.enabled_questions:
+                writer.writerow(row)
+                
     #Separates enabled questions to a list.
     def enabled_questions_picker(self):
         with open(self.practice_path) as p_file:
             reader = csv.DictReader(p_file)
             for row in reader:
-                print(row)
                 if row["status"] == "ENABLED":
                     self.enabled_questions.append(row)
 
     # Returns a random question.
     def random_question(self):
 
-        self.enabled_questions_picker()
-        print(self.enabled_questions)
+
         weights = [float(item["weight"]) for item in self.enabled_questions]
-        print(len(self.enabled_questions))
+
         random_question_data = random.choices(self.enabled_questions, weights, k=1)
         self.enabled_questions.remove(random_question_data[0])
-        print(len(self.enabled_questions))
+
         return random_question_data
 
+    #Splits the question dict into a question and an answer.
     def random_question_splitter(self, random_question_data):
 
         question = random_question_data[0]["question"]
@@ -335,6 +343,8 @@ class PracticeMode:
     # eina i correction ir pakeicia weight ir ideda atgal i lista V
     # tada eina vel klausimas V
     # kai sustabdoma, tada listas perrasomas ant virsaus csv
+
+    #Checks if user answer correct and returns corresponding weight change.
     def correction(self, user_answer, answer):
 
         if user_answer == answer[0]:
@@ -347,6 +357,7 @@ class PracticeMode:
             print("Wrong answer.")
             return weight_change
 
+    #modifies the weight for the specific question dict
     def weight(self, random_question_data, weight_change):
 
         org_weight = float(random_question_data[0]["weight"])
