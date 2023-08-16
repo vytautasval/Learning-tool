@@ -59,6 +59,9 @@ class LearningTool:
                 practice_mode = PracticeMode()
                 practice_mode.launch()
                 time.sleep(1)
+            if user_choice == "test":
+                test_mode = TestMode()
+
 
 
 class QuestionsMode:
@@ -84,6 +87,9 @@ class QuestionsMode:
         print(
             "Please note, that a minimum of 5 questions are required. Enter 'done' once you're finished."
         )
+        print("NOTE: The first answer given for a quiz will be considered the correct one."
+              "Don't worry, in practice and test mode the answers will be shuffled.")
+        
         with open("questions.csv") as file:
             reader = csv.DictReader(file)
             while True:
@@ -361,6 +367,9 @@ class PracticeMode:
 
         self.enabled_questions.append(random_question_data[0])
 
+class TestMode:
+    def __init__(self):
+        ...
 
 if __name__ == "__main__":
     learning_tool = LearningTool()

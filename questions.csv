@@ -9,3 +9,6 @@ id,question,answer,status,weight
 8,fish?,"['yes', 'n']",ENABLED,25
 9,bob?,"['perhaps', 'indeed']",ENABLED,25
 10,john cena???????,"['hell ya my bro', 'indeed sirreino']",ENABLED,25
+11,Giedriukas buvo toks?,"['buvo', 'nebuvo']",ENABLED,25
+12,O Viktoriukas buvo toks?,"['buvo', 'nebuvo', 'atstok']",ENABLED,25
+13,Sosisskaaaaa???,"['o taip', 'o ne', 'ehheeh']",ENABLED,25
