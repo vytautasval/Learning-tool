@@ -1,8 +1,6 @@
 import time
 import csv
 import random
-import pandas as pd
-
 
 # Base tool itself.
 class LearningTool:
@@ -89,7 +87,7 @@ class QuestionsMode:
         )
         print("NOTE: The first answer given for a quiz will be considered the correct one."
               "Don't worry, in practice and test mode the answers will be shuffled.")
-        
+
         with open("questions.csv") as file:
             reader = csv.DictReader(file)
             while True:
@@ -288,7 +286,7 @@ class PracticeMode:
             random_question_data = self.random_question()
             question, answer = self.random_question_splitter(random_question_data)
             correct_answer = answer[0]
-            print(self.enabled_questions)
+
             if len(answer) > 1:
                 random.shuffle(answer)
                 print(question)
@@ -311,6 +309,7 @@ class PracticeMode:
                 weight_change = self.correction(user_answer, correct_answer)
                 self.weight(random_question_data, weight_change)
 
+    #Overwrites existing practice file with the same questions and adjusted weights.
     def csv_rewriter(self):
         with open(self.practice_path, "w", newline='') as p_file:
             writer = csv.DictWriter(p_file, fieldnames=["id", "question", "answer", "status", "weight"])
@@ -369,7 +368,72 @@ class PracticeMode:
 
 class TestMode:
     def __init__(self):
-        ...
+        self.file_path = "questions.csv"
+        self.score = 0
+        self.question_count = 0
+        self.enabled_questions = []
+
+    def launch(self):
+        self.question_count()
+        print("Welcome to test mode. Please input the amount of questions you would like to receive."
+              f"Please note, that there are {self.question_count} questions available.")
+        
+        chosen_count = input()
+        while True:
+            random_question_data, question, answer = self.random_question()
+            correct_answer = answer[0]
+            print(self.enabled_questions)
+
+            if len(answer) > 1:
+                random.shuffle(answer)
+                print(question)
+                for a in answer:
+                    print(a, end="\n")
+                user_answer = input("Enter your answer: ")
+                self.correction(user_answer, correct_answer)
+            else:
+                print(question)
+                user_answer = input("Enter your answer: ")
+                self.correction(user_answer, correct_answer)
+
+    def question_count(self):
+        with open(self.file_path) as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                self.question_count += 1
+
+
+    # Separates enabled questions to a list.
+    def available_questions(self):
+        with open(self.file_path) as file:
+            reader = csv.DictReader(file, fieldnames=["id", "question", "answer", "status", "weight"])
+            for row in reader:
+                if row["status"] == "ENABLED":
+                    self.enabled_questions.append(row)
+
+    # Splits a random question dict into a question and an answer.
+    def random_question(self):
+
+        random_question_data = random.choices(self.enabled_questions)
+        question = random_question_data[0]["question"]
+        answer = random_question_data[0]["answer"]
+        strip_answer = answer.strip("[]")
+        split_answer = strip_answer.split(", ")
+        answer = [element.strip("'") for element in split_answer]
+
+        return random_question_data, question, answer
+
+    #Checks if user answer correct and returns
+    def correction(self, user_answer, correct_answer):
+        if user_answer == correct_answer:
+            self.score += 1
+            print("Correct!")
+            return self.score
+
+        else:
+            print("Wrong answer.")
+
+
 
 if __name__ == "__main__":
     learning_tool = LearningTool()
