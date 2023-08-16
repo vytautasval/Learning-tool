@@ -1,11 +1,6 @@
 id,question,answer,status,weight
-1,1+1,['2'],DISABLED
-2,2+2,['4'],ENABLED
-3,4+4,['8'],ENABLED
-"4,8+8,""['1', '6']"",DISABLED"
-"5,16+16,""['3', '2']"",DISABLED"
-"6,32+32,""['6', '4']"",DISABLED"
-"7,32+32,""['6', '4']"",DISABLED"
-8,32+32,64,ENABLED
-9,100+100,200,ENABLED
-10,kaip kitaip pavadinti kate?,zipa zipulyte,ENABLED
+1,2+2,4,ENABLED,25
+2,5+5,"['10', '15']",ENABLED,25
+3,7+7,1,ENABLED,25
+4,55+55,110,ENABLED,25
+5,cat?,"['cat', 'dog', 'kit', 'kat']",ENABLED,25

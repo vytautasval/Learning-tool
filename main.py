@@ -1,8 +1,10 @@
 import time
 import csv
 import random
+import pandas as pd
 
-#Base tool itself.
+
+# Base tool itself.
 class LearningTool:
     def __init__(self):
         self.command_prompts = {
@@ -34,7 +36,7 @@ class LearningTool:
             time.sleep(1)
             return user_choice
 
-    #Initializes the selected mode.
+    # Initializes the selected mode.
     def main(self):
         while True:
             user_choice = self.start_up()
@@ -58,6 +60,7 @@ class LearningTool:
                 practice_mode.launch()
                 time.sleep(1)
 
+
 class QuestionsMode:
     def __init__(self):
         self.question_count = 0
@@ -73,7 +76,7 @@ class QuestionsMode:
                 return int(last_row["id"])
             return 0
 
-    #Enters question mode, provides the choice between quiz and free form mode and goes into the respective mode.
+    # Enters question mode, provides the choice between quiz and free form mode and goes into the respective mode.
     def questions_mode(self):
         print(
             "You have chosen questions mode. You will now be able to enter and save your questions."
@@ -105,7 +108,8 @@ class QuestionsMode:
                         print("All questions have been added.")
                         break
 
-#Initializes the question and writes to the csv file.
+
+# Initializes the question and writes to the csv file.
 class BaseQuestion:
     def __init__(self):
         self.file_path = "questions.csv"
@@ -121,14 +125,16 @@ class BaseQuestion:
             writer.writerow({"id": question_id, "question": question,
                              "answer": answer, "status": "ENABLED", "weight": 25})
             p_writer.writerow({"id": question_id, "question": question,
-                             "answer": answer, "status": "ENABLED", "weight": 25})
+                               "answer": answer, "status": "ENABLED", "weight": 25})
 
-#Returns the answer made in free form format.
+
+# Returns the answer made in free form format.
 class FreeFormQuestion(BaseQuestion):
     def get_answer(self):
         return input("Enter the answer: ")
 
-#Returns the answer made in quiz format.
+
+# Returns the answer made in quiz format.
 class QuizQuestion(BaseQuestion):
     def get_answer(self):
         answer_list = []
@@ -149,7 +155,8 @@ class QuizQuestion(BaseQuestion):
 
         return answer_list
 
-#Prints out information about the questions from the csv file.
+
+# Prints out information about the questions from the csv file.
 class StatisticsMode:
     def __init__(self):
         self.file_path = "questions.csv"
@@ -161,13 +168,14 @@ class StatisticsMode:
             for row in reader:
                 print(f"ID:{row['id']}. Question: {row['question']}. Status: {row['status']}")
 
-#Enters disable/enable mode.
+
+# Enters disable/enable mode.
 class DisableEnableMode:
     def __init__(self):
         self.file_path = "questions.csv"
         self.practice_path = "practice.csv"
 
-    #Initial prompt for the ID.
+    # Initial prompt for the ID.
     def select(self):
         while True:
             id_selector = input("Enter the ID of the desired question. Otherwise type 'done'. ").strip(" .")
@@ -180,7 +188,7 @@ class DisableEnableMode:
 
             self.process_question(int(id_selector))
 
-    #Then, depending on the status of the question, it will be sent to a confirmation prompt.
+    # Then, depending on the status of the question, it will be sent to a confirmation prompt.
     def process_question(self, id_selector):
         question_found = False
 
@@ -203,14 +211,14 @@ class DisableEnableMode:
             if not question_found:
                 print("Question not found.")
 
-    #Displays the selected question.
+    # Displays the selected question.
     def display_question(self, row):
         print(f"You have selected ID: {row['id']}, "
               f"question: {row['question']}, "
               f"answer: {row['answer']}, "
               f"status: {row['status']}")
 
-    #Confirmation prompt. If user confirms program continues in the activate or deactivate function.
+    # Confirmation prompt. If user confirms program continues in the activate or deactivate function.
     def handle_activation(self, row_index, deactivate):
         action = "deactivate" if deactivate else "activate"
         user_choice = input(f"Type in '{action}' to {action} the question. Otherwise type 'done': ").casefold().strip()
@@ -221,7 +229,7 @@ class DisableEnableMode:
             else:
                 self.activate(row_index)
 
-    #Edits the status to DISABLED.
+    # Edits the status to DISABLED.
     def deactivate(self, row_index):
         rows = []
         with open(self.file_path) as file:
@@ -239,7 +247,7 @@ class DisableEnableMode:
             p_writer.writeheader()
             p_writer.writerows(rows)
 
-    #Edits the status to ENABLED.
+    # Edits the status to ENABLED.
     def activate(self, row_index):
         rows = []
         with open(self.file_path) as file:
@@ -257,68 +265,96 @@ class DisableEnableMode:
             p_writer.writeheader()
             p_writer.writerows(rows)
 
-#Enters practice mode.
+
+# Enters practice mode.
 class PracticeMode:
     def __init__(self):
         self.file_path = "questions.csv"
         self.practice_path = "practice.csv"
+        self.enabled_questions = []
 
-    #Launches practice mode and provides the question obtained from random_question function.
+    # Launches practice mode and provides the question obtained from random_question function.
     def launch(self):
-        self.active_questions()
+        # self.active_questions()
         print("You have selected practice mode. Questions will appear in a random manner. "
               "Please type in the correct answer below.")
         while True:
-            question, answer = self.random_question()
-            correct_answer = answer[0]
+            random_question_data = self.random_question()
+            question, answer = self.random_question_splitter(random_question_data)
+
             if len(answer) > 1:
                 random.shuffle(answer)
                 print(question)
                 for a in answer:
                     print(a, end="\n")
                 user_answer = input("Enter your answer: ")
-                self.correction(user_answer, question, answer)
+                weight_change = self.correction(user_answer, answer)
+                self.weight(random_question_data, weight_change)
             else:
                 print(question)
                 user_answer = input("Enter your answer: ")
-                self.correction(user_answer, question, answer)
+                weight_change = self.correction(user_answer, answer)
+                self.weight(random_question_data, weight_change)
 
-    #Picks out only the active questions and stores them in a csv file.
-    def active_questions(self):
 
-        with open(self.out_path) as out_file, open(self.practice_path, "a", newline="") as in_file:
-            reader = csv.DictReader(out_file)
-            writer = csv.DictWriter(in_file, fieldnames=["id", "question", "answer"])
+    #Separates enabled questions to a list.
+    def enabled_questions_picker(self):
+        with open(self.practice_path) as p_file:
+            reader = csv.DictReader(p_file)
             for row in reader:
+                print(row)
                 if row["status"] == "ENABLED":
-                    writer.writerow({"id": row["id"], "question": row["question"],
-                                     "answer": row["answer"]})
+                    self.enabled_questions.append(row)
 
-    #Picks out a random question.
+    # Returns a random question.
     def random_question(self):
-        enabled_questions = []
-        with open(self.file_path) as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                if row["status"] == "ENABLED":
-                    enabled_questions.append(row)
-        weights = [item["weight"] for item in enabled_questions]
 
-        random_question_data = random.choices(enabled_questions, weights, k=1)
-        question = random_question_data["question"]
-        answer = random_question_data["answer"]
+        self.enabled_questions_picker()
+        print(self.enabled_questions)
+        weights = [float(item["weight"]) for item in self.enabled_questions]
+        print(len(self.enabled_questions))
+        random_question_data = random.choices(self.enabled_questions, weights, k=1)
+        self.enabled_questions.remove(random_question_data[0])
+        print(len(self.enabled_questions))
+        return random_question_data
+
+    def random_question_splitter(self, random_question_data):
+
+        question = random_question_data[0]["question"]
+        answer = random_question_data[0]["answer"]
         strip_answer = answer.strip("[]")
         split_answer = strip_answer.split(", ")
         answer = [element.strip("'") for element in split_answer]
 
         return question, answer
 
-    def correction(self, user_answer, question, answer):
+    # pasiemi faila V
+    # sukeli i lista V
+    # is listo paimi random questiona ir istrini is listo V
+    # atsako V
+    # eina i correction ir pakeicia weight ir ideda atgal i lista V
+    # tada eina vel klausimas V
+    # kai sustabdoma, tada listas perrasomas ant virsaus csv
+    def correction(self, user_answer, answer):
 
-        ...
+        if user_answer == answer[0]:
+            weight_change = -2.5
+            print("Correct!")
+            return weight_change
+
+        else:
+            weight_change = 2.5
+            print("Wrong answer.")
+            return weight_change
+
+    def weight(self, random_question_data, weight_change):
+
+        org_weight = float(random_question_data[0]["weight"])
+        random_question_data[0]["weight"] = org_weight + weight_change
+
+        self.enabled_questions.append(random_question_data[0])
 
 
 if __name__ == "__main__":
     learning_tool = LearningTool()
     learning_tool.main()
-

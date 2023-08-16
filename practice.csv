@@ -1,6 +1,6 @@
-id,question,answer
-2,2+2,['4']
-3,4+4,['8']
-8,32+32,64
-9,100+100,200
-10,kaip kitaip pavadinti kate?,zipa zipulyte
+id,question,answer,status,weight
+1,2+2,4,ENABLED,25
+"2,5+5,""['10', '15']"",ENABLED,25"
+3,7+7,1,ENABLED,25
+4,55+55,110,ENABLED,25
+"5,cat?,""['cat', 'dog', 'kit', 'kat']"",ENABLED,25"
