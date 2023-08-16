@@ -1,11 +1,6 @@
 id,question,answer,status,weight
-1,2+2,4,ENABLED,25
-2,5+5,"['10', '15']",ENABLED,25
-3,7+7,1,ENABLED,25
-4,55+55,110,ENABLED,25
-5,cat?,"['cat', 'dog', 'kit', 'kat']",ENABLED,25
-6,dog?,"['yes', 'no']",ENABLED,25
-7,cat?,"['yes', 'no', 'fish?', 'yes']",ENABLED,25
-8,fish?,"['yes', 'n']",ENABLED,25
-9,bob?,"['perhaps', 'indeed']",ENABLED,25
-10,john cena???????,"['hell ya my bro', 'indeed sirreino']",ENABLED,25
+1,What's the capital of the UK?,"['London', 'Glasgow', 'Dublin', 'Windsor']",DISABLED,25
+2,100 + 500,600,ENABLED,25
+3,What country has the largest population?,"['India', 'China', 'Nigeria']",ENABLED,25
+4,500 * 1,500,DISABLED,25
+5,Who's the current US president?,"['Joe Biden', 'Bill Clinton', 'Ronald Reagan', 'Donald Trump']",ENABLED,25

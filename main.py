@@ -1,8 +1,7 @@
 import time
 import csv
 import random
-import pandas as pd
-
+from datetime import datetime
 
 # Base tool itself.
 class LearningTool:
@@ -59,6 +58,10 @@ class LearningTool:
                 practice_mode = PracticeMode()
                 practice_mode.launch()
                 time.sleep(1)
+            if user_choice == "test":
+                test_mode = TestMode()
+                test_mode.launch()
+
 
 
 class QuestionsMode:
@@ -84,6 +87,9 @@ class QuestionsMode:
         print(
             "Please note, that a minimum of 5 questions are required. Enter 'done' once you're finished."
         )
+        print("NOTE: The first answer given for a quiz will be considered the correct one."
+              " Don't worry, in practice and test modes the answers will be shuffled.")
+
         with open("questions.csv") as file:
             reader = csv.DictReader(file)
             while True:
@@ -139,7 +145,7 @@ class QuizQuestion(BaseQuestion):
     def get_answer(self):
         answer_list = []
         while True:
-            answer = input("Enter an answer:")
+            answer = input("Enter an answer: ")
             if answer.casefold().strip() == "done":
                 if 2 <= len(answer_list) <= 4:
                     break
@@ -238,7 +244,7 @@ class DisableEnableMode:
 
         rows[row_index]['status'] = 'DISABLED'
 
-        with open(self.file_path, "w", newline="") as file, open(self.practice_path, "a", newline="") as p_file:
+        with open(self.file_path, "w", newline="") as file, open(self.practice_path, "w", newline="") as p_file:
             writer = csv.DictWriter(file, fieldnames=rows[0].keys())
             p_writer = csv.DictWriter(p_file, fieldnames=rows[0].keys())
 
@@ -256,7 +262,7 @@ class DisableEnableMode:
 
         rows[row_index]['status'] = 'ENABLED'
 
-        with open(self.file_path, "w", newline="") as file, open(self.practice_path, "a", newline="") as p_file:
+        with open(self.file_path, "w", newline="") as file, open(self.practice_path, "w", newline="") as p_file:
             writer = csv.DictWriter(file, fieldnames=rows[0].keys())
             p_writer = csv.DictWriter(p_file, fieldnames=rows[0].keys())
 
@@ -282,7 +288,7 @@ class PracticeMode:
             random_question_data = self.random_question()
             question, answer = self.random_question_splitter(random_question_data)
             correct_answer = answer[0]
-            print(self.enabled_questions)
+
             if len(answer) > 1:
                 random.shuffle(answer)
                 print(question)
@@ -305,9 +311,11 @@ class PracticeMode:
                 weight_change = self.correction(user_answer, correct_answer)
                 self.weight(random_question_data, weight_change)
 
+    #Overwrites existing practice file with the same questions and adjusted weights.
     def csv_rewriter(self):
         with open(self.practice_path, "w", newline='') as p_file:
             writer = csv.DictWriter(p_file, fieldnames=["id", "question", "answer", "status", "weight"])
+            writer.writeheader()
             for row in self.enabled_questions:
                 writer.writerow(row)
 
@@ -361,7 +369,104 @@ class PracticeMode:
 
         self.enabled_questions.append(random_question_data[0])
 
+#Enters test mode.
+class TestMode:
+    def __init__(self):
+        self.file_path = "questions.csv"
+        self.results_file = "results.csv"
+        self.score = 0
+        self._question_count = 0
+        self.enabled_questions = []
+
+    # Main function of the test mode.
+    def launch(self):
+        self.available_questions()
+        print("Welcome to test mode. Please input the amount of questions you would like to receive."
+              f" Please note, that there are {self.question_count} questions available.")
+
+        chosen_count = int(input())
+        self.count_adjuster(chosen_count)
+        while True:
+            if len(self.enabled_questions) == 0:
+                self.results_writer()
+                break
+
+            question, answer = self.random_question()
+            correct_answer = answer[0]
+
+            if len(answer) > 1:
+                random.shuffle(answer)
+                print(question)
+                for a in answer:
+                    print(a, end="\n")
+                user_answer = input("Enter your answer: ")
+                self.correction(user_answer, correct_answer)
+            else:
+                print(question)
+                user_answer = input("Enter your answer: ")
+                self.correction(user_answer, correct_answer)
+        print(f"Test complete. You scored {self.score} point(s).")
+
+
+    #Writes the results to a csv file.
+    def results_writer(self):
+        with open(self.results_file, "a", newline="") as r_file:
+            writer = csv.DictWriter(r_file, fieldnames=["date", "score"])
+
+            writer.writerow({"date": datetime.now(),
+                             "score": self.score})
+
+    #Counting the amount of questions available
+    @property
+    def question_count(self):
+        return len(self.enabled_questions)
+
+    # Separates enabled questions to a list.
+    def available_questions(self):
+        with open(self.file_path) as file:
+            reader = csv.DictReader(file, fieldnames=["id", "question", "answer", "status", "weight"])
+            for row in reader:
+                if row["status"] == "ENABLED":
+                    self.enabled_questions.append(row)
+
+    #Adjusts available questions based on user's input
+    def count_adjuster(self, chosen_count):
+
+        random.shuffle(self.enabled_questions)
+        count_difference = self.question_count - chosen_count
+        for row in range(count_difference):
+            self.enabled_questions.remove(self.enabled_questions[-1])
+
+
+    # Splits a random question dict into a question and an answer.
+    def random_question(self):
+
+        random_question_data = random.choice(self.enabled_questions)
+        self.enabled_questions.remove(random_question_data)
+        question = random_question_data["question"]
+        answer = random_question_data["answer"]
+        strip_answer = answer.strip("[]")
+        split_answer = strip_answer.split(", ")
+        answer = [element.strip("'") for element in split_answer]
+
+        return question, answer
+
+    #Checks if user answer correct and returns
+    def correction(self, user_answer, correct_answer):
+        if user_answer == correct_answer:
+            self.score += 1
+            print("Correct!")
+            return self.score
+
+        else:
+            print("Wrong answer.")
+
+
 
 if __name__ == "__main__":
     learning_tool = LearningTool()
     learning_tool.main()
+
+#War game: https://github.com/vytautasval/War---The-card-game
+
+#Learning tool: https://github.com/vytautasval/Learning-tool
