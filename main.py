@@ -373,7 +373,7 @@ class PracticeMode:
 class TestMode:
     def __init__(self):
         self.file_path = "questions.csv"
-        self.results_file = "results.csv"
+        self.results_file = "results.txt"
         self.score = 0
         self._question_count = 0
         self.enabled_questions = []
@@ -385,6 +385,13 @@ class TestMode:
               f" Please note, that there are {self.question_count} questions available.")
 
         chosen_count = int(input())
+        while True:
+            if chosen_count > self.question_count:
+                print("Not enough questions available. Please try again.")
+                chosen_count = int(input())
+            else:
+                break
+
         self.count_adjuster(chosen_count)
         while True:
             if len(self.enabled_questions) == 0:
@@ -410,11 +417,12 @@ class TestMode:
 
     #Writes the results to a csv file.
     def results_writer(self):
+        results_dict = {"date": datetime.now(), "score": self.score}
         with open(self.results_file, "a", newline="") as r_file:
-            writer = csv.DictWriter(r_file, fieldnames=["date", "score"])
+            for key, value in results_dict.items():
+                r_file.write("%s: %s\n" % (key, value))
 
-            writer.writerow({"date": datetime.now(),
-                             "score": self.score})
+
 
     #Counting the amount of questions available
     @property
