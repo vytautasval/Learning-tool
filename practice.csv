@@ -1,6 +1,5 @@
 id,question,answer,status,weight
-1,What's the capital of the UK?,"['London', 'Glasgow', 'Dublin', 'Windsor']",DISABLED,25
-2,100 + 500,600,ENABLED,25
-3,What country has the largest population?,"['India', 'China', 'Nigeria']",ENABLED,25
-4,500 * 1,500,DISABLED,25
-5,Who's the current US president?,"['Joe Biden', 'Bill Clinton', 'Ronald Reagan', 'Donald Trump']",ENABLED,25
+6,Hello,1,ENABLED,27.5
+5,Who's the current US president?,"['Joe Biden', 'Bill Clinton', 'Ronald Reagan', 'Donald Trump']",ENABLED,32.5
+2,100 + 500,600,ENABLED,32.5
+3,What country has the largest population?,"['India', 'China', 'Nigeria']",ENABLED,25.0
